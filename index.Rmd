@@ -17,7 +17,7 @@ options(knitr.kable.NA = '')
 
 # Load packages
 library(tidyverse)
-
+library(knitr)
 ```
 
 # Intro
