@@ -1,0 +1,137 @@
+---
+title: "blog_shawn"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-04-18"
+---
+
+```{r}
+library(tidyverse) # data manipulation
+library(tm) # text mining
+library(wordcloud) # word cloud generator
+library(tidytext) # text mining for word processing and sentiment analysis
+library(reshape2) # reshapes a data frame
+library(radarchart) # drawing the radar chart from a data frame
+library(knitr) # dynamic report generation
+library(wordcloud2)
+library(dplyr)
+library(stringr)
+```
+
+```{r setup}
+data0 <- read_csv("data/Script_Finding_Nemo.csv")
+```
+
+```{r}
+marlin <- data0 %>%
+  filter(name == "Marlin") %>% 
+  mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
+  filter(!str_detect(line, "'"))
+
+dory <- data0 %>%
+  filter(name == "Dory") %>% 
+  mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
+  filter(!str_detect(line, "'"))
+
+bruce <- data0 %>%
+  filter(name == "Bruce") %>% 
+  mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
+  filter(!str_detect(line, "'"))
+
+crush <- data0 %>%
+  filter(name == "Crush") %>% 
+  mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
+  filter(!str_detect(line, "'"))
+```
+
+```{r}
+#cleanCorpus takes a corpus as an input and returns a cleaned version of it:
+
+cleanCorpus <- function(corpus){
+
+  corpus.tmp <- tm_map(corpus, removePunctuation) #Removes all punctuation from the corpus and saves the result to a temporary variable. 
+  corpus.tmp <- tm_map(corpus.tmp, stripWhitespace) #Removes all leading and trailing whitespace from the corpus and saves the result.
+  corpus.tmp <- tm_map(corpus.tmp, content_transformer(tolower)) #Converts all text in the corpus to lowercase.
+  v_stopwords <- c(stopwords("english")) #Defines a vector v_stopwords that contains the default English stop words that should be removed from the corpus.
+  corpus.tmp <- tm_map(corpus.tmp, removeWords, v_stopwords) # Removes all stop words from the corpus.
+  corpus.tmp <- tm_map(corpus.tmp, removeNumbers) #Removes all numbers from the corpus.
+  return(corpus.tmp) #Returns the cleaned version of the corpus as the output of the function.
+}
+```
+
+```{r}
+# This function takes a text input and returns a data frame with the frequency count of the most common words in the text.
+frequentTerms <- function(text){
+
+  s.cor <- Corpus(VectorSource(text)) # Create a corpus object from the input text.
+  s.cor.cl <- cleanCorpus(s.cor) # Clean the corpus by removing stop words and punctuation
+  s.tdm <- TermDocumentMatrix(s.cor.cl) # Create a term-document matrix from the cleaned corpus.
+  s.tdm <- removeSparseTerms(s.tdm, 0.999) # Remove sparse terms from the term-document matrix.
+  m <- as.matrix(s.tdm) # Convert the term-document matrix to a regular matrix.
+  word_freqs <- sort(rowSums(m), decreasing=TRUE) # Calculate the frequency count for each word in the matrix and sort them in descending order.
+  dm <- data.frame(word=names(word_freqs), freq=word_freqs) # Create a data frame with the word and frequency count columns.
+  return(dm)
+
+}
+```
+
+```{r}
+top.movie.chars <- as.data.frame(sort(table(data0$name), decreasing=TRUE))[1:20,]
+
+# Visualization 
+ggplot(data=top.movie.chars, aes(x=Var1, y=Freq)) +
+  geom_bar(stat="identity", fill="blue", colour="black") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  labs(x="Character", y="Number of Lines")
+```
+
+```{r}
+letterCloud(frequentTerms(marlin$line), 
+            word = "MARLIN", 
+            wordSize = 1, 
+            color = c(rep("orange", 40), rep("white", 30), rep("black", 1)),
+            backgroundColor = "lightblue",
+            fontWeight = "bold",
+            letterFont = NULL)
+
+wordcloud2(frequentTerms(marlin$line), 
+           size=1,
+           color = c(rep("orange", 40), rep("white", 30), rep("black", 1)),
+           backgroundColor = "lightblue",
+           figPath="marlin4.pmng.png")
+```
+
+```{r}
+letterCloud(frequentTerms(dory$line), 
+            word = "DORY", 
+            wordSize = 1, 
+            color = c(rep("darkblue", 40), rep("yellow", 30), rep("black", 1)),
+            backgroundColor = "lightblue",
+            fontWeight = "bold",
+            letterFont = NULL)
+
+wordcloud2(frequentTerms(dory$line), 
+           size=1,
+           color = c(rep("darkblue", 40), rep("yellow", 30), rep("black", 1)),
+           backgroundColor = "lightblue",
+           figPath="dory3.png")
+```
+
+```{r}
+letterCloud(frequentTerms(crush$line), 
+            word = "CRUSH", 
+            wordSize = 1, 
+            color = c(rep("darkgreen", 40), rep("brown", 30), rep("lightgreen", 1)),
+            backgroundColor = "lightblue",
+            fontWeight = "bold",
+            letterFont = NULL)
+
+wordcloud2(frequentTerms(crush$line), 
+           size=1,
+           color = c(rep("darkgreen", 40), rep("brown", 30), rep("lightgreen", 1)),
+           backgroundColor = "lightblue",
+           figPath="crush.png")
+```
+
