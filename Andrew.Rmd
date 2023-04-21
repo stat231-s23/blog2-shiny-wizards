@@ -1,0 +1,109 @@
+---
+title: "Andrew Wrangling and Visualization"
+output: pdf_document
+date: "2023-04-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyr)
+library(tidyverse)
+library(textdata)
+library(tidytext)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+data <- read.csv("data/Script_Finding_Nemo.csv")
+afinn_lexicon <- get_sentiments("afinn")
+nrc_lexicon <- get_sentiments("nrc")
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+character_word_freqs <- data %>% 
+  #Filter out irrelevant characters like "Scene 1" or "Turtle 1"
+  filter(!str_detect(name, "\\d")) %>%
+  #Get individual words said by characters
+  unnest_tokens(output = word, input = line) %>%
+  #Remove irrelevant words
+  anti_join(stop_words, by="word") %>%
+  #Count the number of times each character says each word
+  group_by(name) %>%
+  count(word, sort = TRUE)
+  
+character_sentiments <- character_word_freqs %>%
+  #Get the sentiments of each word
+  inner_join(afinn_lexicon, by = "word") %>%
+  #Get the average sentiments of the characters, and only take the top ten characters with most words spoken
+  summarize(avg_sentiment = (sum(n*value) / (sum(n))), total_words = sum(n)) %>%
+  arrange(desc(total_words)) %>%
+  head(10)
+
+#data %>% unnest_tokens(output = word, input = line) %>% group_by(name) %>% count(word, sort = TRUE) %>% summarize(total_words = sum(n)) %>% arrange(desc(total_words))
+
+#Barplot the average sentiments of the characters, sorted with the most verbose character on the left
+ggplot(data = character_sentiments, aes(x = reorder(name, -total_words), y = avg_sentiment)) +
+  geom_bar(stat = "identity") + 
+  labs(x = "Character", 
+       y = "Average Sentiment",
+       title = "Average Sentiments of Characters in Finding Nemo",
+       subtitle = "Characters displayed in order of most to least words from left to right")
+
+
+
+character_word_counts <- character_word_freqs %>% 
+  #Only get words in the nrc lexicon
+  inner_join(nrc_lexicon %>% 
+               select(word) %>% 
+               distinct(), by = "word") %>% 
+  #get total number of words said
+  group_by(name) %>% 
+  summarize(total_words = sum(n)) %>%
+  arrange(desc(total_words)) %>%
+  head(6)
+
+percent_per_sentiment <- character_word_freqs %>% 
+  #Get word sentiments
+  inner_join(nrc_lexicon, by = "word") %>% 
+  #Get total words said
+  inner_join(character_word_counts, by = "name") %>%
+  group_by(name, sentiment) %>% 
+  #Calculate percentage of words with that sentiment, using first to remove duplicate fields due to each name-sentiment combination having its own total_words field
+  summarize(sentiment_percentage = sum(n)/first(total_words), total_words = first(total_words)) %>% 
+  group_by(name) %>%
+  arrange(desc(sentiment_percentage)) %>%
+  slice(1:5)
+  #Pivot to display the percentage of words with each sentiment for each character
+  #pivot_wider(names_from = sentiment, values_from = sentiment_percentage, values_fill = 0) %>% 
+
+ggplot(data = percent_per_sentiment,
+       aes(x = fct_reorder(sentiment, sentiment_percentage), 
+           y = sentiment_percentage, fill = name)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~name, ncol = 2, scales = "free") +
+  labs(x = NULL,
+       y = "Percentage of words with sentiment",
+       title = "Top five sentiments for each character",
+       subtitle = "Only top six characters by total words said displayed"
+       ) +
+  coord_flip() +
+  theme(axis.text = element_text(size = 5),
+        strip.text.x = element_text(size = 5))          
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r pressure, echo=FALSE}
+
+
+```
