@@ -34,13 +34,13 @@ dory <- data0 %>%
   mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
   filter(!str_detect(line, "'"))
 
-bruce <- data0 %>%
-  filter(name == "Bruce") %>% 
+gill <- data0 %>%
+  filter(name == "Gill") %>% 
   mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
   filter(!str_detect(line, "'"))
 
-crush <- data0 %>%
-  filter(name == "Crush") %>% 
+peach <- data0 %>%
+  filter(name == "Nemo") %>% 
   mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
   filter(!str_detect(line, "'"))
 ```
@@ -120,18 +120,34 @@ wordcloud2(frequentTerms(dory$line),
 ```
 
 ```{r}
-letterCloud(frequentTerms(crush$line), 
-            word = "CRUSH", 
+letterCloud(frequentTerms(gill$line), 
+            word = "GILL", 
             wordSize = 1, 
-            color = c(rep("darkgreen", 40), rep("brown", 30), rep("lightgreen", 1)),
+            color = c(rep("black", 30), rep("white", 20), rep("yellow", 10)),
             backgroundColor = "lightblue",
             fontWeight = "bold",
             letterFont = NULL)
 
-wordcloud2(frequentTerms(crush$line), 
+wordcloud2(frequentTerms(gill$line), 
            size=1,
-           color = c(rep("darkgreen", 40), rep("brown", 30), rep("lightgreen", 1)),
+           color = c(rep("black", 30), rep("white", 20), rep("yellow", 10)),
            backgroundColor = "lightblue",
-           figPath="crush.png")
+           figPath="gill2.png")
+```
+
+```{r}
+letterCloud(frequentTerms(peach$line), 
+            word = "PEACH", 
+            wordSize = 0.5, 
+            color = c(rep("deeppink", 40), rep("pink", 30), rep("brown", 1)),
+            backgroundColor = "lightblue",
+            fontWeight = "bold",
+            letterFont = NULL)
+
+wordcloud2(frequentTerms(peach$line), 
+           size=2,
+           color = c(rep("deeppink", 30), rep("pink", 20), rep("brown", 10)),
+           backgroundColor = "lightblue",
+           figPath="peach4.png")
 ```
 
