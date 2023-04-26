@@ -138,7 +138,7 @@ wordcloud2(frequentTerms(gill$line),
 ```{r}
 letterCloud(frequentTerms(peach$line), 
             word = "PEACH", 
-            wordSize = 0.5, 
+            wordSize = 1, 
             color = c(rep("deeppink", 40), rep("pink", 30), rep("brown", 1)),
             backgroundColor = "lightblue",
             fontWeight = "bold",
