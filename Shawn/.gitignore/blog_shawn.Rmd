@@ -116,7 +116,7 @@ wordcloud2(frequentTerms(dory$line),
            size=1,
            color = c(rep("darkblue", 40), rep("yellow", 30), rep("black", 1)),
            backgroundColor = "lightblue",
-           figPath="dory3.png")
+           figPath="dory5.png")
 ```
 
 ```{r}
