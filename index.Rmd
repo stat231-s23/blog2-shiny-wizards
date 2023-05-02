@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = FALSE)
 options(knitr.kable.NA = '')
 
 # Load packages
+
 library(tidyverse) # data manipulation
 library(tm) # text mining
 library(wordcloud) # word cloud generator
@@ -26,6 +27,13 @@ library(knitr) # report generation
 library(wordcloud2)
 library(dplyr)
 library(stringr)
+
+library(tidyr)
+library(textdata)
+library(igraph)
+library(ggplot2)
+library(ggnetwork)
+library(scales)
 ```
 
 # Intro
@@ -148,278 +156,183 @@ wordcloud2(frequentTerms(peach$line),
            figPath="peach4.png")
 ```
 
-# Content
+# Sentiment Analysis
 
-You can include text, `code`, and output as usual. Remember to take full advantage of Markdown and follow our [Style Guide](https://acstat231-f22.github.io/home/style-guide.html#Text_narration).
+Sentiment Analysis involves analyzing the overall "feel" of a body of text. We wanted to see what the overall sentiments of the main characters were using two common sentiment databases: the AFINN Lexicon and the NRC Lexicon. While these lexicons enable powerful analysis of character's general sentiments, they are unfortunately not comprehensive and many of the words in Finding Nemo did not appear in either lexicon. 
 
-```{r ggplot-example, fig.align="left", out.width="100%"}
-ggplot(data = cars, aes(x = speed, y = dist)) + 
-  geom_point() + 
-  labs(x = "Speed of car (mph)",
-       y = "Distance taken to stop (ft)",
-       title = "Stopping distance increases with faster speeds",
-       subtitle = "Based on 1920s study") +
-  theme_classic()
+
+```{r, include = FALSE}
+data <- read_csv("data/Script_Finding_Nemo.csv")
+afinn_lexicon <- get_sentiments("afinn")
+nrc_lexicon <- get_sentiments("nrc")
+
+character_word_freqs <- data %>% 
+  #Filter out irrelevant characters like "Scene 1" or "Turtle 1"
+  filter(!str_detect(name, "\\d")) %>%
+  #Get individual words said by characters
+  unnest_tokens(output = word, input = line) %>%
+  #Remove irrelevant words
+  anti_join(stop_words, by="word") %>%
+  #Count the number of times each character says each word
+  group_by(name) %>%
+  count(word, sort = TRUE)
+  
+character_sentiments <- character_word_freqs %>%
+  #Get the sentiments of each word
+  inner_join(afinn_lexicon, by = "word") %>%
+  #Get the average sentiments of the characters, and only take the top ten characters with most words spoken
+  summarize(avg_sentiment = (sum(n*value) / (sum(n))), total_words = sum(n)) %>%
+  #Top 10 characters by number of afinn-lexicon words said
+  arrange(desc(total_words)) %>%
+  head(10)
+
+
+
+
+
+character_word_counts <- character_word_freqs %>% 
+  #Only get words in the nrc lexicon
+  inner_join(nrc_lexicon %>% 
+               select(word) %>% 
+               distinct(), by = "word") %>% 
+  #get total number of words said
+  group_by(name) %>% 
+  summarize(total_words = sum(n)) %>%
+  #Top 6 characters by words said
+  arrange(desc(total_words)) %>%
+  head(6)
+
+percent_per_sentiment <- character_word_freqs %>% 
+  #Get word sentiments
+  inner_join(nrc_lexicon, by = "word") %>% 
+  #Get total words said
+  inner_join(character_word_counts, by = "name") %>%
+  group_by(name, sentiment) %>% 
+  #Calculate percentage of words with that sentiment, using first to remove duplicate fields due to each name-sentiment combination having its own total_words field
+  summarize(sentiment_percentage = sum(n)/first(total_words), total_words = first(total_words)) %>% 
+  #Get the top 5 sentiments per character
+  group_by(name) %>%
+  arrange(desc(sentiment_percentage)) %>%
+  slice(1:5)
+
+
 ```
 
-Examples and additional guidance are provided below. 
+## AFINN Sentiments
 
-Take note of the the default code chunk options in the `setup` code chunk. For example, unlike the rest of the Rmd files we worked in this semester, the default code chunk option is `echo = FALSE`, so you will need to set `echo  = TRUE` for any code chunks you would like to display in the blog. You should be thoughtful and intentional about the code you choose to display. 
+The AFINN lexicon assigns each word a number from -5 to 5 according to how "negative" or "positive" a connotation it contains. We averaged these scores across all of the words said by each character, and calculated an average sentiment for each character on a scale of -5 to 5. For simplicity, we count the number of AFINN lexicon words said by each character, and only display the top 10 characters by total AFINN words said
 
-
-## Links 
-
-You can include [links](https://www.datadreaming.org/post/r-markdown-theme-gallery/) using Markdown syntax as shown. 
-
-You should include links to relevant sites as you write. You should additionally include a list of references as the end of your blog with full citations (and relevant links).
-
-
-## Visualizations 
-
-Visualizations, particularly interactive ones, will be well-received. That said, do not overuse visualizations. You may be better off with one complicated but well-crafted visualization as opposed to many quick-and-dirty plots. Any plots should be well-thought-out, properly labeled, informative, and visually appealing.
-
-If you want to include dynamic visualizations or tables, you should explore your options from packages that are built from [**htmlwidgets**](https://www.htmlwidgets.org/showcase_leaflet.html). These **htmlwidgets**-based packages offer ways to build lighterweight, dynamic visualizations or tables that don't require an R server to run! A more complete list of packages is available on the linked website, but a short list includes:
-
-* [**plotly**](https://plot.ly/r/): Interactive graphics with D3
-* [**leaflet**](https://rstudio.github.io/leaflet/): Interactive maps with OpenStreetMap
-* [**dygraphs**](http://rstudio.github.io/dygraphs): Interactive time series visualization
-* [**visNetwork**](http://dataknowledge.github.io/visNetwork): Network graph visualization vis.js
-* [**sparkline**](https://github.com/htmlwidgets/sparkline): Small inline charts
-* [**threejs**](https://github.com/bwlewis/rthreejs): Interactive 3D graphics
-    
-You may embed a published Shiny app in your blog if useful, but be aware that there is a limited window size for embedded objects, which tends to makes the user experience of the app worse relative to a dedicated Shiny app page. Additionally, Shiny apps will go idle after a few minutes and have to be reloaded by the user, which may also affect the user experience. 
-
-Any Shiny apps embedded in your blog should be accompanied by the link to the published Shiny app (I did this using a figure caption in the code chunk below, but you don't have to incorporate the link in this way).
-
-```{r ds-salaries-app, out.width = "100%", out.extra = 'data-external="1" frameborder="no"', fig.cap = "[Data Science Salaries Shiny App](https://bebailey.shinyapps.io/data-science-salaries)"}
-knitr::include_app("https://bebailey.shinyapps.io/data-science-salaries",
-                   height = "500px")
-```
-
-
-## Tables
-
-### **DT** package
-
-The [**DT** package](https://rstudio.github.io/DT/) is great for making dynamic tables that can be displayed, searched, and filtered by the user without needing an R server or Shiny app!
-
-Note: you should load any packages you use in the `setup` code chunk as usual. The `library()` functions are shown below just for demonstration.
-
-```{r dt-example, message=FALSE, echo=TRUE}
-library(DT)
-mtcars %>% 
-  select(mpg, cyl, hp) %>% 
-  datatable(colnames = c("MPG", "Number of cylinders", "Horsepower"),
-            filter = 'top',
-            options = list(pageLength = 10, autoWidth = TRUE))
-```
-
-### **kableExtra** package
-
-You can also use [**kableExtra**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) for customizing HTML tables.
-
-```{r kable-example, echo=TRUE, message=FALSE}
-library(kableExtra)
-summary(cars) %>%
-  kbl(col.names = c("Speed", "Distance"),
-      row.names = FALSE) %>%
-  kable_styling(bootstrap_options = "striped",
-                full_width = FALSE) %>%
-  row_spec(0, bold = TRUE) %>%
-  column_spec(1:2, width = "1.5in") 
-```
-
-
-## Images
-
-Images and gifs can be displayed using code chunks:
-
-```{r, fig.cap='"Safe Space" by artist Kenesha Sneed', out.width="80%", fig.align="center"}
-knitr::include_graphics("img/Kenesha-Sneed_safe-space.jpeg")
-```
-
-
-```{r, fig.cap="This is a figure caption", out.width="50%", fig.align="center"}
-knitr::include_graphics("https://media.giphy.com/media/H7ZrrA9V2pd3Tehdds/giphy.gif")
-```
-
-You may also use Markdown syntax for displaying images as shown below, but code chunks offer easier customization of the image size and alignment.
-
-![This is another figure caption](https://media.giphy.com/media/8i5IvxP9ZLgmjXN1BF/giphy.gif)
-
-Either way, the file path can be a local path within your project directory or a URL for an image hosted online. This syntax works for PNG, PDF, JPG, and even GIF formats.
-
-
-## Videos
-
-You can use code chunks or Markdown syntax include links to any valid YouTube or Vimeo URLs (see [here](https://bookdown.org/yihui/rmarkdown/learnr-videos.html) for details) or point to a location within your project directory. 
-
-Code chunk:
-
-```{r, out.width="80%", fig.align="center"}
-knitr::include_url("https://www.youtube.com/watch?v=up8ODGFWgFg")
-```
-
-Markdown syntax:
-
-![](https://www.youtube.com/watch?v=up8ODGFWgFg){width="90%"}
-
-
-You may need to push your updates to GitHub to see if the videos work.
-
-
-
-
-## Equations
-
-You might include equations if part of the purpose of your blog is to explain a statistical method. There are two ways to include equations:
-
-* Inline: $b \sim N(0, \sigma^2_b)$
-* Display-style (displayed on its own line): 
-$$\frac{\sigma^2_b}{\sigma^2_b + \sigma^2_e}$$
-
-For typesetting equations appropriately, check out the [AMS-LaTeX quick reference](https://github.com/manuelemacchia/math-latex/blob/master/amsmath.pdf) or take a look at the *Symbols in math mode* section of this  [cheat sheet](https://users.dickinson.edu/~richesod/latex/latexcheatsheet.pdf)  (or do some extra Googling---there are *many* resources).
-
-
-
-# Formatting
-
-## Tabbed subsections {.tabset}
-
-Each subsection below the "Tabbed subsections" section heading will appear in a tab. See R Markdown Cookbook [Section 7.6: Put content in tabs](https://bookdown.org/yihui/rmarkdown-cookbook/html-tabs.html) for additional customization options. 
-
-### Bulleted list
-
-You can make a bulleted list like this:
-
-* item 1
-* item 2
-* item 3
-
-
-### Numbered list
-
-
-You can make a numbered list like this
-
-1. First thing I want to say
-2. Second thing I want to say
-3. Third thing I want to say
-
-
-
-## Column formatting
-
-<!-- Begin columns environment -->
-:::::: {style="display: flex; font-size: large;"}
-
-<!-- Create a column -->
-::: {}
-### Content Column 1
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vel ipsum eu sem facilisis porttitor. Integer eu tristique lectus. Vestibulum nisi risus, porta sit amet cursus nec, auctor ac tellus. Integer egestas viverra rhoncus. Fusce id sem non ante vestibulum posuere ac sed lorem. Proin id felis a mi pellentesque viverra in at nulla. Duis augue nulla, aliquet ac ligula a, sagittis varius lorem.
-
-
-
-:::
-
-<!-- Create another column (this one is just adding horizontal space to separate content) -->
-::: {}
-<div class="horizontalgap" style="width:60px"></div>
-:::
-
-<!-- Create another column -->
-::: {}
-
-### Content Column 2
-
-Aliquam non ante et erat luctus hendrerit eu ac justo. Fusce lacinia pulvinar neque non laoreet. Fusce vitae mauris pharetra, scelerisque purus eget, pharetra nisl. Aenean volutpat elementum tortor vitae rhoncus. Phasellus nec tellus euismod neque congue imperdiet tincidunt in mauris. Morbi eu lorem molestie, hendrerit lorem nec, semper massa. Sed vulputate hendrerit ex, eget cursus purus. Pellentesque consequat erat leo, eleifend porttitor lacus porta at. Vivamus faucibus quam ipsum, id condimentum ligula malesuada ultrices. Nullam luctus leo elit, vitae rutrum nibh venenatis eget. Nam at sodales purus. Proin nulla tellus, lacinia eget pretium sed, vehicula aliquet neque. Morbi vel eros elementum, suscipit elit eu, consequat libero. Nulla nec aliquet neque. Nunc bibendum sapien lectus, sed elementum nisi rutrum non. Ut vulputate at lacus eget maximus.
-
-```{r, out.width="80%", fig.align="right"}
-mtcars %>% 
-  ggplot(aes(x = wt, y = mpg)) +
-  geom_point()
-```
-
-:::
-::::::
-<!-- End columns environment with matching length indicator-->
-
-
-
-
-# Customizing your blog design
-
-
-As a *final* detail **only** if you have time, you can explore options for customizing the style of your blog. By default, we are using the `readthedown` theme from the [**rmdformats** package](https://github.com/juba/rmdformats) (see Line 6 of this file if you want to switch out themes).
-
-
-## Theme
-You can use the [**rmdformats** package](https://github.com/juba/rmdformats) to play around with some pre-built themes. There are, I'm sure, many many many more similar packages with built in themes, or you can look into how to include a CSS code chunk to customize aspects of a theme.  
-
-Using the **rmdformats** package, you can change the theme itself (Line 6): 
-
-* `rmdformats::readthedown`
-* `rmdformats::downcute` 
-  * For `downcute` only, you can add a new indented line below Line 6 with the code `downcute_theme: "chaos"` for the `downcute chaos` theme
-* `rmdformats::robobook` 
-* `rmdformats::material`
-
-You can explore additional YAML options by looking at the [**rmdformats** package](https://github.com/juba/rmdformats) page or running, for example, `?rmdformats::readthedown()` to see the help documentation for a particular theme from the package. 
-
-## Synax highlighting
-
-You can also change the code chunk syntax highlighting option (Line 7, `highlight`): 
-
-* `"default"`
-* `"tango"`
-* `"pygments"`
-* `"kate"`
-* `"monochrome"`
-* `"espresso"`
-* `"zenburn"`
-* `"haddock"`
-* `"textmate"` 
-* `NULL` for no syntax highlighting (not recommended)
-
-## Font size, type, and other customization
-
-Further customization requires adding a CSS style file or code chunk or incorporating other development options. Customization beyond the **rmdformats** package should be your lowest and final priority for the project. Ensure your content is fully prepared first.
-
-
-# References
-
-All data sources, any key R packages, and any other sources used in developing your blog should be cited in full in a list of references at the end of your blog. Your blog post should also link to these sources as they are discussed. You may choose any reference style as long as sources are fully cited (try to be consistent!).
-
-Typically, references in R Markdown (and LaTeX) files are [incorporated with a BibTeX database](https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html) (a .bib file). You can try this approach or manually include either a numbered or alphabetized list. 
-
-Columbia University has compiled some guidance on [how to cite data](https://guides.library.columbia.edu/datacitation). Some data sources will give you the citation information to copy and paste. Use the provided citations or citation styles in those cases.
-
-You can list R package citations with the code `citation("packageName")` in the console and then copy (and reformat as needed) the relevant text, e.g.,
 ```{r}
-citation("DT")
+#Barplot the average sentiments of the characters, sorted with the most verbose character on the left
+ggplot(data = character_sentiments, aes(x = reorder(name, -total_words), y = avg_sentiment)) +
+  geom_bar(stat = "identity") + 
+  labs(x = "Character", 
+       y = "Average Sentiment",
+       title = "Average Sentiments of Characters in Finding Nemo",
+       subtitle = "Characters displayed in order of most to least words from left to right")
 ```
 
-The following citations are based on the American Statistical Association citation style (not all of these references are used in this document).:
+From these results, we can see that most characters are on average fairly positive. This makes sense given Finding Nemo's status as a PG movie intended for children. Of these characters, Peach and Crush have very positive average sentiments, which tracks with their personalities. Peach, the pink starfish, is a big-sister type character, helping Nemo when he first enters the dentist's tank. With her positive encouragement and protection, Peach's dialogue is overall very positive. On the other hand, Crush is a surfer dude type character, and his carefree lifestyle leads to largely positive dialogue. Finally, the one character with a negative overall sentiment is Bloat, the pufferfish. Bloat starts off by scaring Nemo when he first enters the dentist's office, and throughout the film is generally short-tempered and anxious, leading to an overall negative sentiment.
+
+## NRC Sentiments
+
+In contrast to the AFINN lexicon, the NRC lexicon categorizes words into different sentiment categories such as anticipation, fear, or joy, allowing for one word to exist in multiple categories. In this analysis, we count the number of words in each character's dialogue associated with each sentiment category, and display the top 5 sentiments in each character's dialogue. As this analysis is more complex, we only include the top 6 characters by total NRC words said.
 
 
-<!-- Textbook -->
-Baumer, B. S., Kaplan, D. T., and Horton, N. J. (2021), *Modern Data Science with R* (2nd ed.), Boca Raton, FL: CRC Press.
 
-<!-- Journal article -->
-Broman, K. W. and Woo, K. H. (2018), "Data Organization in Spreadsheets," *The American Statistician*, 72:1, 2-10, doi: [10.1080/00031305.2017.1375989](https://doi.org/10.1080/00031305.2017.1375989)
+```{r}
+#Plot the top 5 sentiments for each character 
+ggplot(data = percent_per_sentiment,
+       #Arrange sentiments by how common they are in that character's dialogue
+       aes(x = fct_reorder(sentiment, sentiment_percentage), 
+           y = sentiment_percentage, fill = name)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~name, ncol = 2, scales = "free") +
+  labs(x = NULL,
+       y = "Percentage of words with sentiment",
+       title = "Top five sentiments for each character",
+       subtitle = "Displays top six characters by total words said"
+       ) +
+  coord_flip() +
+  theme(axis.text = element_text(size = 5),
+        strip.text.x = element_text(size = 5))   
+```
 
-<!-- Website -->
-Columbia University Libraries (n.d.), "Data Citation," available at <https://guides.library.columbia.edu/datacitation>.
+As before, we can see that Crush's dialogue is mostly positive, with over half of his words belonging to that category. Unfortunately, due to the large number of words that fit into the broad categories of "positive" and "negative," these sentiment categories figure prominently in each character's dialogue. 
 
-<!-- Journal article -->
-McNamara, A. and Horton N. J. (2018) "Wrangling Categorical Data in R," *The American Statistician*, 72:1, 97-104, doi: [10.1080/00031305.2017.1356375](https://doi.org/10.1080/00031305.2017.1356375).
+# Network Centrality
 
-<!-- Dataset -->
-Shah, Syed A. A. (October 2022), "Starbucks Drinks" (Version 1), *Kaggle*, available at <https://www.kaggle.com/datasets/syedasimalishah/starbucks-drinks>.
 
-<!-- R package -->
-Xie Y, Cheng J, Tan X (2022). "DT: A Wrapper of the JavaScript Library 'DataTables'," R package version 0.24, available at <https://CRAN.R-project.org/package=DT>.
+```{r, include = FALSE}
+
+#Top 10 characters by total words said
+character_words <- character_word_freqs %>%
+  #Get the number of words said
+  group_by(name) %>%
+  summarize(n=sum(n)) %>%
+  #Top 10 characters
+  arrange(desc(n)) %>%
+  head(10)
+
+#Get the number of interactions between each pair of characters
+interactions <- data %>% 
+  #Get all characters that spoke adjacent to each other in the script
+  select(name) %>% mutate(name1 = lag(name)) %>% 
+  #Inner join to only select the dialogues between characters in the top 10 by total words said
+  inner_join(character_words, by="name") %>%
+  inner_join(character_words, by=c("name1"="name")) %>%
+  select(name, name1) %>%
+  drop_na() %>% 
+  #Get the total number of interactions between each pair of characters
+  group_by(across(c(name, name1))) %>% 
+  summarize(n = n()) %>% 
+  #Make into an igraph
+  igraph::graph_from_data_frame(directed=FALSE) 
+
+
+
+#Calculate the degree and strength of each character in the network
+nemo_stats <- tibble(name = vertex_attr(interactions, "name")
+                    , degree = degree(interactions)
+                    , strength = strength(interactions
+                                          , weights = edge_attr(interactions, "n")))
+  
+
+  
+```
+
+## Character Interactions
+```{r, warning = FALSE}
+#Plot the network of interactions, with color and size of edges corresponding to the number of interactions
+ggplot(data=interactions %>% ggnetwork()
+       , aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_edges(curvature = 0.3,
+             angle = 30,
+             aes(color = n,
+                 linewidth = n)) +
+  scale_color_continuous(type = "viridis"
+                         , labels = label_number()) +
+  geom_nodes(size=5) +
+  geom_nodelabel(aes(label = name)) +
+  labs(title = "Pairwise Interactions in Finding Nemo",
+       color = "Number of interactions",
+       size = "Number of interactions") +
+  theme_blank() +
+  theme(legend.position = "bottom", legend.box="vertical") + 
+  guides(size = "none")
+```
+
+## Character Centrality
+
+```{r}
+#Plot the strength of each character in the network
+ggplot(data = nemo_stats, aes(x = name, y = strength)) + 
+  geom_bar(stat = "identity") + 
+  labs(x = "Character Name", 
+       y = "Strength Centrality",
+       title = "Strength Centrality of Finding Nemo Characters",
+       subtitle = "Displays top 10 characters by total words said")
+```
   
 
 
