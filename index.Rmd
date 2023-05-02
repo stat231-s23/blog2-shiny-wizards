@@ -105,7 +105,7 @@ ggplot(data=top.movie.chars, aes(x=Var1, y=Freq)) +
   labs(x="Character", y="Number of Lines")
 ```
 
-## Marlin
+## Marlin 
 
 ```{r marlin, warning=FALSE}
 marlinwc <- wordcloud2(frequentTerms(marlin$line), 
@@ -135,7 +135,7 @@ wordcloud2(frequentTerms(dory$line),
 ```
 
 
-## Gill
+## Gill {.active}
 
 ```{r gill, warning=FALSE}
 wordcloud2(frequentTerms(gill$line), 
