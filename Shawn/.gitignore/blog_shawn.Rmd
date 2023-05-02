@@ -107,14 +107,14 @@ wordcloud2(frequentTerms(marlin$line),
 letterCloud(frequentTerms(dory$line), 
             word = "DORY", 
             wordSize = 1, 
-            color = c(rep("darkblue", 40), rep("yellow", 30), rep("black", 1)),
+            color = c(rep("darkblue", 30), rep("yellow", 30), rep("black", 1)),
             backgroundColor = "lightblue",
             fontWeight = "bold",
             letterFont = NULL)
 
 wordcloud2(frequentTerms(dory$line), 
            size=1,
-           color = c(rep("darkblue", 40), rep("yellow", 30), rep("black", 1)),
+           color = c(rep("darkblue", 30), rep("yellow", 30), rep("black", 1)),
            backgroundColor = "lightblue",
            figPath="dory5.png")
 ```
