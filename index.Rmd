@@ -3,7 +3,7 @@ title: "Beneath the Surface: A Finding Nemo Character Study"
 author: "Andrew Ni, Shawn Rapal"
 date: "May 9, 2023"
 output:
-  rmdformats::readthedown:
+  rmdformats::robobook:
     highlight: "kate"
 ---
 
@@ -27,6 +27,7 @@ library(knitr) # report generation
 library(wordcloud2)
 library(dplyr)
 library(stringr)
+library(rmdformats)
 
 library(tidyr)
 library(textdata)
@@ -115,6 +116,13 @@ wordcloud2(frequentTerms(marlin$line),
            figPath="png/marlin4.pmng.png")
 ```
 
+
+Marlin, the overprotective clownfish and father of Nemo, is the main character in Pixar's Finding Nemo. 
+
+One of Marlin's most frequently used words is "son," which reflects his deep love and concern for Nemo. He is constantly worried about his son's safety, and his use of the word "son" reinforces this central theme. His use of "look" also reflects his hyper-awareness of his surroundings and his need to stay vigilant to keep his son safe. One interesting finding is Marlin's use of the word "boat", which could reflect his fear of human world and his desire to save Nemo from it.
+
+Marlin's less frequent but important use of words like "coral" and "kids" reveals more about his relationships with other characters in the movie. His use of "coral" reflects his attachment to his home and community, while his use of "kids" reveals his connection to other parents from whom he receives advice, such as Crush, the sea turtle.
+
 ## Dory
 
 ```{r dory, eval=FALSE, warning=FALSE, include=FALSE}
@@ -130,6 +138,10 @@ knitr::include_graphics("img/dory.png")
 ```
 
 
+Dory is undoubtedly one of the most beloved characters in Finding Nemo, known for her famous catchphrase "just keep swimming." 
+
+One of the most frequently used words in Dory's vocabulary is "swim", which reflects her natural inclination to explore. It also serves as a metaphor for her philosophy on life, which is to keep moving forward no matter what obstacles may arise. Dory also frequently uses the word "can't". This reflects her lack of confidence, as well as her tendency to give up when faced with a challenge. However, it also serves to highlight her growth throughout the movie, as she learns to believe in herself and her abilities. Another word that is less frequently used but still important to Dory's character is her own name, "Dory," which she uses as a form of self-identification and self-affirmation. 
+
 ## Gill {.active}
 
 ```{r gill, eval=FALSE, warning=FALSE, include=FALSE}
@@ -144,6 +156,13 @@ wordcloud2(frequentTerms(gill$line),
 knitr::include_graphics("img/gill.png")
 ```
 
+
+Gill is the leader of the Tank Gang.
+
+One of his most frequently used words is "calm." When the group is trying to figure out how to escape from the dentist's office, Gill tells them to "stay calm" and not panic. This shows that Gill is a natural leader who is able to keep a level head in stressful situations, and that he is concerned about the well-being of his fellow fish.
+
+The word "lead" is also important in understanding Gill's character. While it is not one of his most frequently used words, it does appear several times throughout the movie. For example, when the Tank Gang is trying to get out of the plastic bags, Gill tells Nemo to "lead the way." This shows that Gill is not only a leader, but also recognizes leadership qualities in others. He is able to delegate tasks and trust others to take charge when needed.
+
 ## Peach
 
 ```{r peach, eval=FALSE, warning=FALSE, include=FALSE}
@@ -157,6 +176,11 @@ wordcloud2(frequentTerms(peach$line),
 ```{r}
 knitr::include_graphics("img/peach.png")
 ```
+
+
+Peach is one of the supporting characters in the movie "Finding Nemo." She is a pink starfish who lives in the tank in the dentist's office where Nemo is taken after being captured in the wild. Throughout the movie, Peach is shown to be a loyal and caring friend to the other inhabitants of the tank, particularly Gill, who is the de facto leader of the group.
+
+A text analysis of Peach's dialogue reveals that she frequently mentions both Gill and Nemo, which suggests that these two characters are important to her. Peach often talks about Gill in relation to his plans to escape from the tank, showing her admiration for his leadership skills and bravery. 
 
 # Sentiment Analysis
 
@@ -337,6 +361,40 @@ ggplot(data = nemo_stats, aes(x = name, y = strength)) +
 ```
   
 
+# References
+
+All data sources, any key R packages, and any other sources used in developing your blog should be cited in full in a list of references at the end of your blog. Your blog post should also link to these sources as they are discussed. You may choose any reference style as long as sources are fully cited (try to be consistent!).
+
+Typically, references in R Markdown (and LaTeX) files are [incorporated with a BibTeX database](https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html) (a .bib file). You can try this approach or manually include either a numbered or alphabetized list. 
+
+Columbia University has compiled some guidance on [how to cite data](https://guides.library.columbia.edu/datacitation). Some data sources will give you the citation information to copy and paste. Use the provided citations or citation styles in those cases.
+
+You can list R package citations with the code `citation("packageName")` in the console and then copy (and reformat as needed) the relevant text, e.g.,
+```{r}
+citation("DT")
+```
+
+The following citations are based on the American Statistical Association citation style (not all of these references are used in this document).:
+
+
+<!-- Textbook -->
+Baumer, B. S., Kaplan, D. T., and Horton, N. J. (2021), *Modern Data Science with R* (2nd ed.), Boca Raton, FL: CRC Press.
+
+<!-- Journal article -->
+Broman, K. W. and Woo, K. H. (2018), "Data Organization in Spreadsheets," *The American Statistician*, 72:1, 2-10, doi: [10.1080/00031305.2017.1375989](https://doi.org/10.1080/00031305.2017.1375989)
+
+<!-- Website -->
+Columbia University Libraries (n.d.), "Data Citation," available at <https://guides.library.columbia.edu/datacitation>.
+
+<!-- Journal article -->
+McNamara, A. and Horton N. J. (2018) "Wrangling Categorical Data in R," *The American Statistician*, 72:1, 97-104, doi: [10.1080/00031305.2017.1356375](https://doi.org/10.1080/00031305.2017.1356375).
+
+<!-- Dataset -->
+Shah, Syed A. A. (October 2022), "Starbucks Drinks" (Version 1), *Kaggle*, available at <https://www.kaggle.com/datasets/syedasimalishah/starbucks-drinks>.
+
+<!-- R package -->
+Xie Y, Cheng J, Tan X (2022). "DT: A Wrapper of the JavaScript Library 'DataTables'," R package version 0.24, available at <https://CRAN.R-project.org/package=DT>.
+  
 
  
 
