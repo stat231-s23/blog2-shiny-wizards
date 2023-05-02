@@ -1,7 +1,7 @@
 ---
 title: "Your Project Title Here"
 author: "Andrew Ni, Shawn Rapal"
-date: "Add a date"
+date: "May 9, 2023"
 output:
   rmdformats::readthedown:
     highlight: "kate"
@@ -16,8 +16,16 @@ knitr::opts_chunk$set(echo = FALSE)
 options(knitr.kable.NA = '')
 
 # Load packages
-library(tidyverse)
-library(knitr)
+library(tidyverse) # data manipulation
+library(tm) # text mining
+library(wordcloud) # word cloud generator
+library(tidytext) # text mining for word processing and sentiment analysis
+library(reshape2) # reshapes a data frame
+library(radarchart) # drawing the radar chart from a data frame
+library(knitr) # report generation
+library(wordcloud2)
+library(dplyr)
+library(stringr)
 ```
 
 # Intro
@@ -32,6 +40,113 @@ This is an R Markdown blog template. This document will be knit to HTML to produ
 
 3. Commit and push changes when you are ready. The website may take a couple minutes to update automatically after the push, but you may need to clear your browser's cache or view the page in a private/incognito window to see the changes more quickly. 
 
+# Wordclouds
+
+```{r shawn, include = FALSE}
+data0 <- read_csv("data/Script_Finding_Nemo.csv")
+
+marlin <- data0 %>%
+  filter(name == "Marlin") %>% 
+  mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
+  filter(!str_detect(line, "'"))
+
+dory <- data0 %>%
+  filter(name == "Dory") %>% 
+  mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
+  filter(!str_detect(line, "'"))
+
+gill <- data0 %>%
+  filter(name == "Gill") %>% 
+  mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
+  filter(!str_detect(line, "'"))
+
+peach <- data0 %>%
+  filter(name == "Nemo") %>% 
+  mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
+  filter(!str_detect(line, "'"))
+
+#cleanCorpus takes a corpus as an input and returns a cleaned version of it:
+
+cleanCorpus <- function(corpus){
+
+  corpus.tmp <- tm_map(corpus, removePunctuation) #Removes all punctuation from the corpus and saves the result to a temporary variable. 
+  corpus.tmp <- tm_map(corpus.tmp, stripWhitespace) #Removes all leading and trailing whitespace from the corpus and saves the result.
+  corpus.tmp <- tm_map(corpus.tmp, content_transformer(tolower)) #Converts all text in the corpus to lowercase.
+  v_stopwords <- c(stopwords("english")) #Defines a vector v_stopwords that contains the default English stop words that should be removed from the corpus.
+  corpus.tmp <- tm_map(corpus.tmp, removeWords, v_stopwords) # Removes all stop words from the corpus.
+  corpus.tmp <- tm_map(corpus.tmp, removeNumbers) #Removes all numbers from the corpus.
+  return(corpus.tmp) #Returns the cleaned version of the corpus as the output of the function.
+}
+
+# This function takes a text input and returns a data frame with the frequency count of the most common words in the text.
+frequentTerms <- function(text){
+
+  s.cor <- Corpus(VectorSource(text)) # Create a corpus object from the input text.
+  s.cor.cl <- cleanCorpus(s.cor) # Clean the corpus by removing stop words and punctuation
+  s.tdm <- TermDocumentMatrix(s.cor.cl) # Create a term-document matrix from the cleaned corpus.
+  s.tdm <- removeSparseTerms(s.tdm, 0.999) # Remove sparse terms from the term-document matrix.
+  m <- as.matrix(s.tdm) # Convert the term-document matrix to a regular matrix.
+  word_freqs <- sort(rowSums(m), decreasing=TRUE) # Calculate the frequency count for each word in the matrix and sort them in descending order.
+  dm <- data.frame(word=names(word_freqs), freq=word_freqs) # Create a data frame with the word and frequency count columns.
+  return(dm)
+
+}
+
+top.movie.chars <- as.data.frame(sort(table(data0$name), decreasing=TRUE))[1:20,]
+```
+
+## Top Characters
+
+```{r topchars}
+ggplot(data=top.movie.chars, aes(x=Var1, y=Freq)) +
+  geom_bar(stat="identity", fill="lightblue", colour="black") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  labs(x="Character", y="Number of Lines")
+```
+
+## Marlin
+
+```{r marlin, warning=FALSE}
+wordcloud2(frequentTerms(marlin$line), 
+           size=1,
+           color = c(rep("orange", 40), rep("white", 30), rep("black", 1)),
+           backgroundColor = "lightblue",
+           figPath="marlin4.pmng.png")
+```
+
+
+## Dory
+
+```{r dory, warning=FALSE}
+wordcloud2(frequentTerms(dory$line), 
+           size=1,
+           color = c(rep("darkblue", 30), rep("yellow", 30), rep("black", 1)),
+           backgroundColor = "lightblue",
+           figPath="dory5.png")
+```
+
+
+## Gill
+
+```{r gill, warning=FALSE}
+wordcloud2(frequentTerms(gill$line), 
+           size=1,
+           color = c(rep("black", 30), rep("white", 20), rep("yellow", 10)),
+           backgroundColor = "lightblue",
+           figPath="gill2.png")
+```
+
+
+## Peach
+
+```{r peach, warning=FALSE}
+wordcloud2(frequentTerms(peach$line), 
+           size=2,
+           color = c(rep("deeppink", 30), rep("pink", 20), rep("brown", 10)),
+           backgroundColor = "lightblue",
+           figPath="peach4.png")
+```
 
 # Content
 
