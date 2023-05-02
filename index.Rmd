@@ -1,5 +1,5 @@
 ---
-title: "Your Project Title Here"
+title: "Beneath the Surface: A Finding Nemo Character Study"
 author: "Andrew Ni, Shawn Rapal"
 date: "May 9, 2023"
 output:
@@ -38,15 +38,7 @@ library(scales)
 
 # Intro
 
-This is an R Markdown blog template. This document will be knit to HTML to produce a webpage that will be hosted publicly via GitHub.
-
-## Website publication work flow
-
-1. Edit Rmd
-
-2. Knit to HTML to view progress. You may need to click "Open in Browser" for some content to show (sometimes content won't show until you actually push your changes to GitHub and view the published website).
-
-3. Commit and push changes when you are ready. The website may take a couple minutes to update automatically after the push, but you may need to clear your browser's cache or view the page in a private/incognito window to see the changes more quickly. 
+Welcome to "Beneath the Surface"! If you're a fan of the beloved Pixar classic, Finding Nemo, and are interested in analyzing the script using text analysis, you're in the right place. In this blog, we'll be taking a deep dive into the words spoken by each of the characters in the movie to uncover their personalities, motivations, and relationships with one another. Using text analysis tools, we'll be able to examine the language and patterns of speech of each character and draw insights about how they contribute to the overall narrative. Whether you're a fan of Marlin, Nemo, Crush, or any of the other lovable characters in this underwater adventure, "Beneath the Surface" is the place to be for a closer look at the story of Finding Nemo.
 
 # Wordclouds
 
