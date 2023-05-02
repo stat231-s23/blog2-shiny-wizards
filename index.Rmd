@@ -112,39 +112,50 @@ wordcloud2(frequentTerms(marlin$line),
            size=1,
            color = c(rep("orange", 40), rep("white", 30), rep("black", 1)),
            backgroundColor = "lightblue",
-           figPath="marlin4.pmng.png")
+           figPath="png/marlin4.pmng.png")
 ```
 
 ## Dory
 
-```{r dory, warning=FALSE}
+```{r dory, eval=FALSE, warning=FALSE, include=FALSE}
 wordcloud2(frequentTerms(dory$line), 
            size=1,
            color = c(rep("darkblue", 30), rep("yellow", 30), rep("black", 1)),
            backgroundColor = "lightblue",
-           figPath="dory5.png")
+           figPath="png/dory5.png")
+```
+
+```{r}
+knitr::include_graphics("img/dory.png")
 ```
 
 
 ## Gill {.active}
 
-```{r gill, warning=FALSE}
+```{r gill, eval=FALSE, warning=FALSE, include=FALSE}
 wordcloud2(frequentTerms(gill$line), 
            size=1,
            color = c(rep("black", 30), rep("white", 20), rep("yellow", 10)),
            backgroundColor = "lightblue",
-           figPath="gill2.png")
+           figPath="png/gill2.png")
 ```
 
+```{r}
+knitr::include_graphics("img/gill.png")
+```
 
 ## Peach
 
-```{r peach, warning=FALSE}
+```{r peach, eval=FALSE, warning=FALSE, include=FALSE}
 wordcloud2(frequentTerms(peach$line), 
            size=2,
            color = c(rep("deeppink", 30), rep("pink", 20), rep("brown", 10)),
            backgroundColor = "lightblue",
-           figPath="peach4.png")
+           figPath="png/peach4.png")
+```
+
+```{r}
+knitr::include_graphics("img/peach.png")
 ```
 
 # Sentiment Analysis
