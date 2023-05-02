@@ -10,6 +10,10 @@ library(tidyr)
 library(tidyverse)
 library(textdata)
 library(tidytext)
+library(igraph)
+library(ggplot2)
+library(ggnetwork)
+library(scales)
 ```
 
 ## R Markdown
@@ -45,6 +49,7 @@ character_sentiments <- character_word_freqs %>%
   inner_join(afinn_lexicon, by = "word") %>%
   #Get the average sentiments of the characters, and only take the top ten characters with most words spoken
   summarize(avg_sentiment = (sum(n*value) / (sum(n))), total_words = sum(n)) %>%
+  #Top 10 characters by number of afinn-lexicon words said
   arrange(desc(total_words)) %>%
   head(10)
 
@@ -68,6 +73,7 @@ character_word_counts <- character_word_freqs %>%
   #get total number of words said
   group_by(name) %>% 
   summarize(total_words = sum(n)) %>%
+  #Top 6 characters by words said
   arrange(desc(total_words)) %>%
   head(6)
 
@@ -79,13 +85,14 @@ percent_per_sentiment <- character_word_freqs %>%
   group_by(name, sentiment) %>% 
   #Calculate percentage of words with that sentiment, using first to remove duplicate fields due to each name-sentiment combination having its own total_words field
   summarize(sentiment_percentage = sum(n)/first(total_words), total_words = first(total_words)) %>% 
+  #Get the top 5 sentiments per character
   group_by(name) %>%
   arrange(desc(sentiment_percentage)) %>%
   slice(1:5)
-  #Pivot to display the percentage of words with each sentiment for each character
-  #pivot_wider(names_from = sentiment, values_from = sentiment_percentage, values_fill = 0) %>% 
 
+#Plot the top 5 sentiments for each character 
 ggplot(data = percent_per_sentiment,
+       #Arrange sentiments by how common they are in that character's dialogue
        aes(x = fct_reorder(sentiment, sentiment_percentage), 
            y = sentiment_percentage, fill = name)) +
   geom_col(show.legend = FALSE) +
@@ -93,7 +100,7 @@ ggplot(data = percent_per_sentiment,
   labs(x = NULL,
        y = "Percentage of words with sentiment",
        title = "Top five sentiments for each character",
-       subtitle = "Only top six characters by total words said displayed"
+       subtitle = "Displays top six characters by total words said"
        ) +
   coord_flip() +
   theme(axis.text = element_text(size = 5),
@@ -105,5 +112,58 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 
 ```{r pressure, echo=FALSE}
 
+#Top 10 characters by total words said
+character_words <- character_word_freqs %>%
+  #Get the number of words said
+  group_by(name) %>%
+  summarize(n=sum(n)) %>%
+  #Top 10 characters
+  arrange(desc(n)) %>%
+  head(10)
+
+#Get the number of interactions between each pair of characters
+interactions <- data %>% 
+  #Get all characters that spoke adjacent to each other in the script
+  select(name) %>% mutate(name1 = lag(name)) %>% 
+  #Inner join to only select the dialogues between characters in the top 10 by total words said
+  inner_join(character_words, by="name") %>%
+  inner_join(character_words, by=c("name1"="name")) %>%
+  select(name, name1) %>%
+  drop_na() %>% 
+  #Get the total number of interactions between each pair of characters
+  group_by(across(c(name, name1))) %>% 
+  summarize(n = n()) %>% 
+  #Make into an igraph
+  igraph::graph_from_data_frame(directed=FALSE) 
+
+#Plot the network of interactions, with color and size of edges corresponding to the number of interactions
+ggplot(data=interactions %>% ggnetwork()
+       , aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_edges(curvature = 0.3,
+             angle = 30,
+             aes(color = n,
+                 size = n)) +
+  scale_color_continuous(type = "viridis"
+                         , labels = label_number()) +
+  geom_nodes(size=5) +
+  geom_nodelabel(aes(label = name)) +
+  labs(title = "Pairwise Interactions in Finding Nemo",
+       color = "Number of interactions",
+       size = "Number of interactions") +
+  theme_blank() +
+  theme(legend.position = "bottom", legend.box="vertical") + 
+  guides(size = FALSE)
+
+#Calculate the degree and strength of each character in the network
+nemo_stats <- tibble(name = vertex_attr(interactions, "name")
+                    , degree = degree(interactions)
+                    , strength = strength(interactions
+                                          , weights = edge_attr(interactions, "n")))
+  
+#Plot the strength of each character in the network
+ggplot(data = nemo_stats, aes(x = name, y = strength)) + 
+  geom_bar(stat = "identity") + 
+  labs(x = "Character Name", y = "Strength Centrality")
+  
 
 ```
