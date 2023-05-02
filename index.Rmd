@@ -116,13 +116,21 @@ ggplot(data=top.movie.chars, aes(x=Var1, y=Freq)) +
 ## Marlin
 
 ```{r marlin, warning=FALSE}
-wordcloud2(frequentTerms(marlin$line), 
+marlinwc <- wordcloud2(frequentTerms(marlin$line), 
            size=1,
            color = c(rep("orange", 40), rep("white", 30), rep("black", 1)),
            backgroundColor = "lightblue",
            figPath="marlin4.pmng.png")
+
+library(htmlwidgets)
+##install.packages("webshot")
+webshot::install_phantomjs()
+saveWidget(marlinwc, "marlinwc.html")
 ```
 
+```{r}
+webshot::webshot("marlinwc.html")
+```
 
 ## Dory
 
