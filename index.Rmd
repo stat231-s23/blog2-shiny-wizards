@@ -108,12 +108,16 @@ ggplot(data=top.movie.chars, aes(x=Var1, y=Freq)) +
 
 ## Marlin 
 
-```{r marlin, warning=FALSE}
+```{r marlin, eval=FALSE, warning=FALSE, include=FALSE}
 wordcloud2(frequentTerms(marlin$line), 
            size=1,
            color = c(rep("orange", 40), rep("white", 30), rep("black", 1)),
            backgroundColor = "lightblue",
            figPath="png/marlin4.pmng.png")
+```
+
+```{r}
+knitr::include_graphics("img/marlin.png")
 ```
 
 Marlin, the overprotective clownfish and father of Nemo, is the main character in Pixar's Finding Nemo. 
