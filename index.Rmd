@@ -254,11 +254,12 @@ The AFINN lexicon assigns each word a number from -5 to 5 according to how "nega
 ```{r}
 #Barplot the average sentiments of the characters, sorted with the most verbose character on the left
 ggplot(data = character_sentiments, aes(x = reorder(name, -total_words), y = avg_sentiment)) +
-  geom_bar(stat = "identity") + 
+  geom_bar(stat = "identity", fill=c("red", "blue", "black", "red", "yellow", "blue", "orange", "pink", "grey", "darkgoldenrod")) + 
   labs(x = "Character", 
        y = "Average Sentiment",
        title = "Average Sentiments of Characters in Finding Nemo",
-       subtitle = "Characters displayed in order of most to least words from left to right")
+       subtitle = "Characters displayed in order of most to least words from left to right.",
+       color = "")
 ```
 
 From these results, we can see that most characters are on average fairly positive. This makes sense given Finding Nemo's status as a PG movie intended for children. Of these characters, Peach and Crush have very positive average sentiments, which tracks with their personalities. Peach, the pink starfish, is a big-sister type character, helping Nemo when he first enters the dentist's tank. With her positive encouragement and protection, Peach's dialogue is overall very positive. On the other hand, Crush is a surfer dude type character, and his carefree lifestyle leads to largely positive dialogue. Finally, the one character with a negative overall sentiment is Bloat, the pufferfish. Bloat starts off by scaring Nemo when he first enters the dentist's office, and throughout the film is generally short-tempered and anxious, leading to an overall negative sentiment.
@@ -365,7 +366,7 @@ We used network centrality to evaluate the strength centrality of the nodes in t
 ```{r}
 #Plot the strength of each character in the network
 ggplot(data = nemo_stats, aes(x = name, y = strength)) + 
-  geom_bar(stat = "identity") + 
+  geom_bar(stat = "identity", fill=c("yellow", "grey", "darkgoldenrod", "blue", "black", "red", "blue", "red", "orange", "pink")) + 
   labs(x = "Character Name", 
        y = "Strength Centrality",
        title = "Strength Centrality of Finding Nemo Characters",
