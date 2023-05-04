@@ -283,9 +283,11 @@ ggplot(data = percent_per_sentiment,
         strip.text.x = element_text(size = 5))   
 ```
 
-As before, we can see that Crush's dialogue is mostly positive, with over half of his words belonging to that category. Unfortunately, due to the large number of words that fit into the broad categories of "positive" and "negative," these sentiment categories figure prominently in each character's dialogue. 
+As before, we can see that Crush's dialogue is mostly positive, with over half of his words belonging to that category. Unfortunately, due to the large number of words that fit into the broad categories of "positive" and "negative," these sentiment categories figure prominently in each character's dialogue. Among the other, narrower, sentiment categories, anticipation figures prominently in Dory, Marlin, and Nemo's dialogues. This makes sense since Nemo is thrust into an unfamiliar environment while Dory and Marlin frantically try to find him.
 
 # Network Centrality
+
+Network centrality can be used to study the relative importance, or centrality, of characters in the movie. Here we count every time a character speaks right after another character as an interaction, and sum up the total number of interactions for each pair of characters. For simplicity, we only consider interactions between the top ten characters by total words spoken. 
 
 
 ```{r, include = FALSE}
@@ -327,6 +329,8 @@ nemo_stats <- tibble(name = vertex_attr(interactions, "name")
 ```
 
 ## Character Interactions
+
+
 ```{r, warning = FALSE}
 #Plot the network of interactions, with color and size of edges corresponding to the number of interactions
 ggplot(data=interactions %>% ggnetwork()
@@ -347,7 +351,12 @@ ggplot(data=interactions %>% ggnetwork()
   guides(size = "none")
 ```
 
+This graph displays the characters as nodes and interactions between characters as edges. Edge color and thickness are scaled according to the number of interactions between the characters at either end. Three pairwise interactions stand out: Dory and Marlin, Marlin and Nemo, and Nemo and Gill. Dory and Marlin have the most interactions out of any pair of characters, which is understandable given that most of the movie follows their journey to save Nemo. Nemo and Marlin have the second most interactions, as they are a very close father-son pair, despite being separated for a large part of the movie. Finally, Gill is the leader of the fish in the dentists' tank where Nemo ends up, and so also interacts a lot with Nemo.
+
 ## Character Centrality
+
+We used network centrality to evaluate the strength centrality of the nodes in the above graph. Strength centrality is simply the sum of the weights of all edges a node is attached to.
+
 
 ```{r}
 #Plot the strength of each character in the network
@@ -359,6 +368,7 @@ ggplot(data = nemo_stats, aes(x = name, y = strength)) +
        subtitle = "Displays top 10 characters by total words said")
 ```
   
+  Similarly to the graph, this bar chart puts Marlin as the most central character, which makes sense as the movie mostly follows his journey in finding his son. From there, the most central characters are Dory, Nemo, and Gill, in that order, all three of which were participants in one of the three most common pairwise interactions above. All in all, network centrality correlates well with the status of Marlin, Dory, and Nemo as the main characters of Finding Nemo.
 
 # References
 
