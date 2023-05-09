@@ -46,22 +46,22 @@ Welcome to "Beneath the Surface"! If you're a fan of the beloved Pixar classic, 
 ```{r shawn, include = FALSE}
 data0 <- read_csv("data/Script_Finding_Nemo.csv")
 
-marlin <- data0 %>%
+marlin <- data0 %>% #create a dataset with only marlin's lines
   filter(name == "Marlin") %>% 
   mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
   filter(!str_detect(line, "'"))
 
-dory <- data0 %>%
+dory <- data0 %>% #create a dataset with only dory's lines
   filter(name == "Dory") %>% 
   mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
   filter(!str_detect(line, "'"))
 
-gill <- data0 %>%
+gill <- data0 %>% #create a dataset with only gill's lines
   filter(name == "Gill") %>% 
   mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
   filter(!str_detect(line, "'"))
 
-peach <- data0 %>%
+peach <- data0 %>% #create a dataset with only peach's lines
   filter(name == "Nemo") %>% 
   mutate(line = str_replace_all(line, "[^[:alnum:][:space:]]", "")) %>%
   filter(!str_detect(line, "'"))
@@ -99,6 +99,8 @@ top.movie.chars <- as.data.frame(sort(table(data0$name), decreasing=TRUE))[1:20,
 ## Top Characters
 
 ```{r topchars}
+#This plot will create a bar chart with each character on the x-axis and their number of lines on the y-axis
+#it will be ordered from most lines to least lines
 ggplot(data=top.movie.chars, aes(x=Var1, y=Freq)) +
   geom_bar(stat="identity", fill="lightblue", colour="black") +
   theme_bw() +
@@ -109,6 +111,10 @@ ggplot(data=top.movie.chars, aes(x=Var1, y=Freq)) +
 ## Marlin 
 
 ```{r marlin, eval=FALSE, warning=FALSE, include=FALSE}
+#this code creates a wordcloud in the shape of marlin, only using marlins words
+#it is color coded to match marlin's colors
+#it does not evaluate because the package wordcloud2 has a bug that has not been fixed yet. 
+#this is the same for the next three wordclouds of dory, gill, and peach
 wordcloud2(frequentTerms(marlin$line), 
            size=1,
            color = c(rep("orange", 40), rep("white", 30), rep("black", 1)),
@@ -117,6 +123,8 @@ wordcloud2(frequentTerms(marlin$line),
 ```
 
 ```{r}
+#use a picture of the wordcloud because of the package bug
+# this is the same for the next three wordclouds of dory, gill, and peach
 knitr::include_graphics("img/marlin.png")
 ```
 
